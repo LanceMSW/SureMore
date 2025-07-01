@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>发货计划</title>
+    <style>
+        body { margin: 0; font-family: '微软雅黑', Arial, sans-serif; background: #f5f6fa; }
+        .main { max-width: 1200px; margin: 32px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px #e0e4ea; padding: 32px 36px; }
+        h2 { font-size: 22px; margin-bottom: 22px; color: #222; letter-spacing: 1px; }
+        .toolbar { margin-bottom: 22px; display: flex; align-items: center; gap: 12px; }
+        .toolbar input, .toolbar select {
+            padding: 6px 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 15px;
+            background: #fafbfc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .toolbar input:focus, .toolbar select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px #ecf5ff;
+            background: #fff;
+        }
+        .toolbar button {
+            padding: 7px 20px;
+            background: #409eff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #e0e4ea;
+        }
+        .toolbar button:hover:not(:disabled) {
+            background: #66b1ff;
+        }
+        .toolbar button:disabled {
+            background: #c0c4cc;
+            cursor: not-allowed;
+        }
+        .table-container { overflow-x: auto; border-radius: 10px; box-shadow: 0 2px 12px #f0f1f5; position: relative; }
+        table {
+            min-width: 100%; border-collapse: separate; border-spacing: 0;
+            background: #fff;
+        }
+        th, td {
+            padding: 12px 10px; border-bottom: 1px solid #ebeef5; text-align: left; font-size: 15px; white-space: nowrap;
+        }
+        th {
+            background: #f5f7fa; color: #333; font-weight: 600; border-bottom: 2px solid #ebeef5;
+        }
+        tr {
+            transition: background 0.2s;
+        }
+        tbody tr:hover {
+            background: #f4f8ff;
+        }
+        .status-tag {
+            padding: 3px 14px; border-radius: 16px; font-size: 14px; color: #fff; font-weight: 500;
+            display: inline-block; min-width: 60px; text-align: center;
+        }
+        .status-0 { background: #67c23a; }
+        .status-1 { background: #e6a23c; }
+        .status-2 { background: #f56c6c; }
+        .action-btn {
+            padding: 6px 18px; border: none; border-radius: 6px; background: #409eff; color: #fff;
+            cursor: pointer; font-size: 15px; margin-right: 8px; transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #e0e4ea;
+        }
+        .action-btn:hover:not(:disabled) { background: #66b1ff; }
+        .action-btn:disabled { background: #c0c4cc; cursor: not-allowed; }
+        .qty { color: #666; font-variant-numeric: tabular-nums; }
+        .qty-highlight { color: #409eff; font-weight: bold; }
+        .input-cell input {
+            padding: 6px 10px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 15px; background: #fafbfc; transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+        }
+        .input-cell input:focus { border-color: #409eff; box-shadow: 0 0 0 2px #ecf5ff; background: #fff; }
+        /* 分页控件 */
+        .el-pagination { margin: 18px 0 0; text-align: right; user-select: none; }
+        .el-pagination button {
+            background: #fff; border: 1px solid #dcdfe6; color: #606266; border-radius: 4px; margin: 0 2px; padding: 5px 13px; font-size: 15px; cursor: pointer; transition: all 0.2s;
+        }
+        .el-pagination button[disabled] { color: #c0c4cc; border-color: #ebeef5; background: #f5f7fa; cursor: not-allowed; }
+        .el-pagination .active {
+            background: #409eff; color: #fff; border-color: #409eff;
+        }
+        .sticky-col {
+            position: sticky;
+            right: 0;
+            background: #fff;
+            z-index: 2;
+            min-width: 120px;
+            box-shadow: -2px 0 8px #f0f1f5;
+        }
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-mask {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.25);
+            z-index: 0;
+        }
+        .modal-content {
+            position: relative;
+            z-index: 1;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 40px #0002, 0 1.5px 6px #409eff22;
+            padding: 32px 36px 24px 36px;
+            width: 400px;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: modal-fade-in 0.25s cubic-bezier(.55,0,.1,1);
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 18px;
+            margin-top: 28px;
+        }
+        .modal-btn {
+            border-radius: 6px;
+            font-size: 15px;
+            min-width: 80px;
+            padding: 7px 0;
+        }
+        .modal-btn-primary {
+            background: #409eff;
+            color: #fff;
+            border: none;
+        }
+        .modal-btn-primary:hover {
+            background: #66b1ff;
+        }
+        .modal-btn-default {
+            background: #f5f7fa;
+            color: #333;
+            border: none;
+        }
+        @keyframes modal-fade-in {
+            0% { opacity: 0; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        html, body {
+            height: 100%;
+            min-height: 100%;
+        }
+        body {
+            position: relative;
+            min-height: 100vh;
+        }
+        .modal-input {
+            border-radius: 6px;
+            border: 1px solid #dcdfe6;
+            font-size: 15px;
+            padding: 7px 12px;
+            width: 220px;
+            margin-top: 12px;
+            margin-bottom: 8px;
+            background: #fafbfc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .modal-input:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px #ecf5ff;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+<div class="main">
+    <h2>发货计划</h2>
+    <div class="toolbar">
+        <input type="text" placeholder="计划单号/PO单号/产品" />
+        <select>
+            <option>全部状态</option>
+            <option>待排期</option>
+            <option>已排期</option>
+            <option>已发货</option>
+        </select>
+        <button onclick="alert('筛选功能仅演示')">筛选</button>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>发货计划单号</th>
+                <th>关联单号（PO单号）</th>
+                <th>产品</th>
+                <th>发货数量</th>
+                <th>在库库存</th>
+                <th>占用数量</th>
+                <th>可用数量</th>
+                <th>发货排期</th>
+                <th>状态</th>
+                <th class="sticky-col">操作</th>
+            </tr>
+            </thead>
+            <tbody id="delivery-tbody"></tbody>
+        </table>
+    </div>
+</div>
+<div id="scheduleModal" class="modal" style="display:none;">
+  <div class="modal-mask" onclick="closeScheduleModal()"></div>
+  <div class="modal-content">
+    <div class="modal-title">确认排期</div>
+    <div style="margin-bottom:10px;">请输入发货排期日期（如2024-06-01）：</div>
+    <input type="text" id="scheduleDate" class="modal-input" placeholder="2024-06-01" />
+    <div class="modal-buttons">
+      <button class="modal-btn modal-btn-default" onclick="closeScheduleModal()">取消</button>
+      <button class="modal-btn modal-btn-primary" onclick="confirmScheduleModal()">确认</button>
+    </div>
+  </div>
+</div>
+<div id="shipModal" class="modal" style="display:none;">
+  <div class="modal-mask" onclick="closeShipModal()"></div>
+  <div class="modal-content">
+    <div class="modal-title">确认发货</div>
+    <div>是否确认发货？</div>
+    <div class="modal-buttons">
+      <button class="modal-btn modal-btn-default" onclick="closeShipModal()">取消</button>
+      <button class="modal-btn modal-btn-primary" onclick="confirmShipModal()">确认</button>
+    </div>
+  </div>
+</div>
+<script>
+    // 扩充20条发货计划数据
+    const data = Array.from({length: 20}, (_, i) => {
+        const base = [
+            {poNo: 'PO20240501', product: '电机A', stockQty: 150, occupiedQty: 30, availableQty: 120, status: 0},
+            {poNo: 'PO20240502', product: '外壳B', stockQty: 30, occupiedQty: 10, availableQty: 20, status: 1},
+            {poNo: 'PO20240503', product: '主板C', stockQty: 0, occupiedQty: 0, availableQty: 0, status: 2}
+        ];
+        const b = base[i % 3];
+        return {
+            id: `FHP202405${(i+1).toString().padStart(2, '0')}`,
+            poNo: b.poNo,
+            product: b.product,
+            planQty: 60 + i*3,
+            stockQty: b.stockQty - i,
+            occupiedQty: b.occupiedQty - i,
+            availableQty: b.availableQty - i,
+            schedule: b.status === 0 ? '' : (b.status === 1 ? '2024-06-01' : '2024-05-28'),
+            status: b.status
+        };
+    });
+    const statusMap = ['待排期', '已排期', '已发货'];
+    // 分页参数
+    let currentPage = 1;
+    const pageSize = 10;
+    function render() {
+        const tbody = document.getElementById('delivery-tbody');
+        tbody.innerHTML = '';
+        const start = (currentPage-1)*pageSize;
+        const end = start + pageSize;
+        data.slice(start, end).forEach((row, idx) => {
+            tbody.innerHTML += `<tr>
+                <td>${row.id}</td>
+                <td>${row.poNo}</td>
+                <td>${row.product}</td>
+                <td class="qty">${row.planQty}</td>
+                <td class="qty">${row.stockQty}</td>
+                <td class="qty">${row.occupiedQty}</td>
+                <td class="qty">${row.availableQty}</td>
+                <td>${row.schedule || (row.status === 0 ? '-' : '')}</td>
+                <td><span class="status-tag status-${row.status}">${statusMap[row.status]}</span></td>
+                <td class="sticky-col">
+                    ${row.status === 0 ? `<button class='action-btn' onclick='showScheduleModal(${start+idx})'>确认排期</button>` : ''}
+                    ${row.status === 1 ? `<button class='action-btn' onclick='showShipModal(${start+idx})'>发货</button>` : ''}
+                </td>
+            </tr>`;
+        });
+        renderPagination();
+    }
+    function renderPagination() {
+        let html = '';
+        const total = data.length;
+        const pageCount = Math.ceil(total / pageSize);
+        html += `<div style='margin:16px 0;text-align:right;'>`;
+        html += `<button onclick='gotoPage(1)' ${currentPage===1?'disabled':''}>首页</button>`;
+        html += `<button onclick='gotoPage(${currentPage-1})' ${currentPage===1?'disabled':''}>上一页</button>`;
+        for(let i=1;i<=pageCount;i++){
+            html += `<button onclick='gotoPage(${i})' ${currentPage===i?'style=\"background:#409eff;color:#fff;\"':''}>${i}</button>`;
+        }
+        html += `<button onclick='gotoPage(${currentPage+1})' ${currentPage===pageCount?'disabled':''}>下一页</button>`;
+        html += `<button onclick='gotoPage(${pageCount})' ${currentPage===pageCount?'disabled':''}>末页</button>`;
+        html += ` 共${total}条`;
+        html += `</div>`;
+        let container = document.getElementById('plan-pagination');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'plan-pagination';
+            document.querySelector('.main').appendChild(container);
+        }
+        container.innerHTML = html;
+    }
+    function gotoPage(page) {
+        const total = data.length;
+        const pageCount = Math.ceil(total / pageSize);
+        if(page<1||page>pageCount) return;
+        currentPage = page;
+        render();
+    }
+    let scheduleIdx = -1, shipIdx = -1;
+    function showScheduleModal(idx) {
+        scheduleIdx = idx;
+        document.getElementById('scheduleDate').value = '';
+        document.getElementById('scheduleModal').style.display = 'block';
+    }
+    function closeScheduleModal() {
+        document.getElementById('scheduleModal').style.display = 'none';
+        scheduleIdx = -1;
+    }
+    function confirmScheduleModal() {
+        const date = document.getElementById('scheduleDate').value.trim();
+        if (!date) { alert('请输入排期日期'); return; }
+        data[scheduleIdx].schedule = date;
+        data[scheduleIdx].status = 1;
+        closeScheduleModal();
+        render();
+    }
+    function showShipModal(idx) {
+        shipIdx = idx;
+        document.getElementById('shipModal').style.display = 'block';
+    }
+    function closeShipModal() {
+        document.getElementById('shipModal').style.display = 'none';
+        shipIdx = -1;
+    }
+    function confirmShipModal() {
+        data[shipIdx].status = 2;
+        closeShipModal();
+        render();
+    }
+    render();
+</script>
+</body>
+</html> 

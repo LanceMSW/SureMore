@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>库存管理</title>
+    <style>
+        html, body {
+            height: 100%;
+            min-height: 100%;
+        }
+        body {
+            position: relative;
+            min-height: 100vh;
+        }
+        .main {
+            max-width: 1400px;
+            margin: 32px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px #e0e4ea;
+            padding: 32px 36px;
+        }
+        h2 {
+            font-size: 22px;
+            margin-bottom: 22px;
+            color: #222;
+            letter-spacing: 1px;
+        }
+        .toolbar {
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .toolbar input, .toolbar select {
+            padding: 6px 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 15px;
+            background: #fafbfc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .toolbar input:focus, .toolbar select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px #ecf5ff;
+            background: #fff;
+        }
+        .toolbar button {
+            padding: 7px 20px;
+            background: #409eff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #e0e4ea;
+        }
+        .toolbar button:hover:not(:disabled) {
+            background: #66b1ff;
+        }
+        .toolbar button:disabled {
+            background: #c0c4cc;
+            cursor: not-allowed;
+        }
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px #f0f1f5;
+            position: relative;
+        }
+        table {
+            min-width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #fff;
+        }
+        th, td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #ebeef5;
+            text-align: left;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+        th {
+            background: #f5f7fa;
+            color: #333;
+            font-weight: 600;
+            border-bottom: 2px solid #ebeef5;
+        }
+        tr {
+            transition: background 0.2s;
+        }
+        tbody tr:hover {
+            background: #f4f8ff;
+        }
+        .status-tag {
+            padding: 3px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            color: #fff;
+            font-weight: 500;
+            display: inline-block;
+            min-width: 60px;
+            text-align: center;
+        }
+        .status-0 {
+            background: #67c23a;
+        }
+        .status-1 {
+            background: #e6a23c;
+        }
+        .status-2 {
+            background: #f56c6c;
+        }
+        .action-btn {
+            padding: 6px 18px;
+            border: none;
+            border-radius: 6px;
+            background: #409eff;
+            color: #fff;
+            cursor: pointer;
+            font-size: 15px;
+            margin-right: 8px;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #e0e4ea;
+        }
+        .action-btn:hover:not(:disabled) {
+            background: #66b1ff;
+        }
+        .action-btn:disabled {
+            background: #c0c4cc;
+            cursor: not-allowed;
+        }
+        .qty {
+            color: #666;
+            font-variant-numeric: tabular-nums;
+        }
+        .qty-highlight {
+            color: #409eff;
+            font-weight: bold;
+        }
+        .qty-warning {
+            color: #e6a23c;
+            font-weight: bold;
+        }
+        .qty-danger {
+            color: #f56c6c;
+            font-weight: bold;
+        }
+        .sub-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .text-success {
+            color: #67c23a;
+        }
+        .text-warning {
+            color: #e6a23c;
+        }
+        .text-danger {
+            color: #f56c6c;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom-color: #409eff;
+            color: #409eff;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .input-cell input {
+            padding: 6px 10px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 15px;
+            background: #fafbfc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .input-cell input:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px #ecf5ff;
+            background: #fff;
+        }
+        /* 分页控件 */
+        .el-pagination {
+            margin: 18px 0 0;
+            text-align: right;
+            user-select: none;
+        }
+        .el-pagination button {
+            background: #fff;
+            border: 1px solid #dcdfe6;
+            color: #606266;
+            border-radius: 4px;
+            margin: 0 2px;
+            padding: 5px 13px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .el-pagination button[disabled] {
+            color: #c0c4cc;
+            border-color: #ebeef5;
+            background: #f5f7fa;
+            cursor: not-allowed;
+        }
+        .el-pagination .active {
+            background: #409eff;
+            color: #fff;
+            border-color: #409eff;
+        }
+        .sticky-col {
+            position: sticky;
+            right: 0;
+            background: #fff;
+            z-index: 2;
+            min-width: 120px;
+            box-shadow: -2px 0 8px #f0f1f5;
+        }
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-mask {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.25);
+            z-index: 0;
+        }
+        .modal-content {
+            position: relative;
+            z-index: 1;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 40px #0002, 0 1.5px 6px #409eff22;
+            padding: 32px 36px 24px 36px;
+            width: 400px;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: modal-fade-in 0.25s cubic-bezier(.55,0,.1,1);
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 18px;
+            margin-top: 28px;
+        }
+        .modal-btn {
+            border-radius: 6px;
+            font-size: 15px;
+            min-width: 80px;
+            padding: 7px 0;
+        }
+        .modal-btn-primary {
+            background: #409eff;
+            color: #fff;
+            border: none;
+        }
+        .modal-btn-primary:hover {
+            background: #66b1ff;
+        }
+        .modal-btn-default {
+            background: #f5f7fa;
+            color: #333;
+            border: none;
+        }
+        @keyframes modal-fade-in {
+            0% {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="main">
+    <h2>库存管理</h2>
+    
+    <!-- 页签 -->
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('product')">产品库存</div>
+        <div class="tab" onclick="switchTab('batch')">批次库存</div>
+        <div class="tab" onclick="switchTab('location')">库位库存</div>
+    </div>
+    
+    <!-- 产品库存页签 -->
+    <div id="product-tab" class="tab-content active">
+        <div class="toolbar">
+            <input type="text" placeholder="产品名称/产品编码" />
+            <select>
+                <option>全部状态</option>
+                <option>正常</option>
+                <option>预警</option>
+                <option>缺货</option>
+            </select>
+            <button onclick="alert('筛选功能仅演示')">筛选</button>
+            <button onclick="alert('库存盘点功能仅演示')" style="background: #67c23a;">库存盘点</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>产品编码</th>
+                    <th>产品名称</th>
+                    <th>规格型号</th>
+                    <th>在库库存</th>
+                    <th>占用数量</th>
+                    <th>可用数量</th>
+                    <th>生产中</th>
+                    <th>质检待上架</th>
+                    <th>安全库存</th>
+                    <th>库存状态</th>
+                    <th>最后入库</th>
+                    <th>最后出库</th>
+                    <th class="sticky-col">操作</th>
+                </tr>
+                </thead>
+                <tbody id="product-tbody">
+                </tbody>
+            </table>
+            <div id="product-pagination">
+            </div>
+        </div>
+    </div>
+    
+    <!-- 批次库存页签 -->
+    <div id="batch-tab" class="tab-content">
+        <div class="toolbar">
+            <input type="text" placeholder="批次号/产品名称" />
+            <select>
+                <option>全部状态</option>
+                <option>正常</option>
+                <option>预警</option>
+                <option>缺货</option>
+            </select>
+            <button onclick="alert('筛选功能仅演示')">筛选</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>批次号</th>
+                    <th>产品编码</th>
+                    <th>产品名称</th>
+                    <th>规格型号</th>
+                    <th>库位</th>
+                    <th>批次库存</th>
+                    <th>占用数量</th>
+                    <th>可用数量</th>
+                    <th>生产日期</th>
+                    <th>有效期</th>
+                    <th>库存状态</th>
+                    <th class="sticky-col">操作</th>
+                </tr>
+                </thead>
+                <tbody id="batch-tbody">
+                </tbody>
+            </table>
+            <div id="batch-pagination">
+            </div>
+        </div>
+    </div>
+    
+    <!-- 库位库存页签 -->
+    <div id="location-tab" class="tab-content">
+        <div class="toolbar">
+            <input type="text" placeholder="库位编码/产品名称" />
+            <select>
+                <option>全部状态</option>
+                <option>正常</option>
+                <option>预警</option>
+                <option>缺货</option>
+            </select>
+            <button onclick="alert('筛选功能仅演示')">筛选</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>库位编码</th>
+                    <th>库位名称</th>
+                    <th>产品编码</th>
+                    <th>产品名称</th>
+                    <th>规格型号</th>
+                    <th>库位库存</th>
+                    <th>占用数量</th>
+                    <th>可用数量</th>
+                    <th>库位容量</th>
+                    <th>占用率</th>
+                    <th>库存状态</th>
+                    <th class="sticky-col">操作</th>
+                </tr>
+                </thead>
+                <tbody id="location-tbody">
+                </tbody>
+            </table>
+            <div id="location-pagination">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 统一弹框：库存调整 -->
+<div id="stockModal" class="modal" style="display:none;">
+  <div class="modal-mask" onclick="closeStockModal()"></div>
+  <div class="modal-content">
+    <div class="modal-title" id="stockModalTitle"></div>
+    <div id="stockModalBody"></div>
+    <input type="number" id="stockModalInput" class="modal-input" />
+    <div class="modal-buttons">
+      <button class="modal-btn modal-btn-default" onclick="closeStockModal()">取消</button>
+      <button class="modal-btn modal-btn-primary" onclick="confirmStockModal()">确认</button>
+    </div>
+  </div>
+</div>
+
+<script>
+    // 产品库存数据（当前数据）
+    const productData = Array.from({length: 20}, (_, i) => {
+        const base = [
+            {name: '电机A', spec: 'DC12V-100W', inProduction: 20, qcPending: 10, safetyQty: 50, status: 0},
+            {name: '外壳B', spec: 'ABS-200*150*80', inProduction: 5, qcPending: 2, safetyQty: 50, status: 1},
+            {name: '主板C', spec: 'PCB-150*100', inProduction: 0, qcPending: 0, safetyQty: 20, status: 2},
+            {name: '显示屏D', spec: 'LCD-7寸', inProduction: 10, qcPending: 3, safetyQty: 30, status: 0},
+            {name: '传感器E', spec: 'HALL-12V', inProduction: 2, qcPending: 1, safetyQty: 25, status: 1}
+        ];
+        const b = base[i % 5];
+        return {
+            id: `P${(i+1).toString().padStart(3, '0')}`,
+            name: b.name,
+            spec: b.spec,
+            stockQty: 150 - i*5,
+            occupiedQty: 30 - i,
+            availableQty: 120 - i*4,
+            inProduction: b.inProduction,
+            qcPending: b.qcPending,
+            safetyQty: b.safetyQty,
+            lastIn: `2024-05-${(15-i%10).toString().padStart(2,'0')}`,
+            lastOut: `2024-05-${(20-i%10).toString().padStart(2,'0')}`,
+            status: b.status
+        };
+    });
+    
+    // 批次库存数据
+    const batchData = Array.from({length: 20}, (_, i) => {
+        const base = [
+            {productId: 'P001', productName: '电机A', spec: 'DC12V-100W', location: 'A-01-01', status: 0},
+            {productId: 'P002', productName: '外壳B', spec: 'ABS-200*150*80', location: 'A-01-02', status: 1},
+            {productId: 'P003', productName: '主板C', spec: 'PCB-150*100', location: 'A-02-01', status: 2},
+            {productId: 'P004', productName: '显示屏D', spec: 'LCD-7寸', location: 'B-01-01', status: 0},
+            {productId: 'P005', productName: '传感器E', spec: 'HALL-12V', location: 'B-01-02', status: 1}
+        ];
+        const b = base[i % 5];
+        return {
+            batchNo: `B202405${(i+1).toString().padStart(2, '0')}`,
+            productId: b.productId,
+            productName: b.productName,
+            spec: b.spec,
+            location: b.location,
+            batchQty: 80 - i*2,
+            occupiedQty: 20 - i,
+            availableQty: 60 - i,
+            productionDate: `2024-05-${(1+i%20).toString().padStart(2,'0')}`,
+            expiryDate: `2026-05-${(1+i%20).toString().padStart(2,'0')}`,
+            status: b.status
+        };
+    });
+    
+    // 库位库存数据
+    const locationData = Array.from({length: 20}, (_, i) => {
+        const base = [
+            {locationName: 'A区01排01列', productId: 'P001', productName: '电机A', spec: 'DC12V-100W', capacity: 200, status: 0},
+            {locationName: 'A区01排02列', productId: 'P002', productName: '外壳B', spec: 'ABS-200*150*80', capacity: 100, status: 1},
+            {locationName: 'A区02排01列', productId: 'P003', productName: '主板C', spec: 'PCB-150*100', capacity: 50, status: 2},
+            {locationName: 'B区01排01列', productId: 'P004', productName: '显示屏D', spec: 'LCD-7寸', capacity: 100, status: 0},
+            {locationName: 'B区01排02列', productId: 'P005', productName: '传感器E', spec: 'HALL-12V', capacity: 50, status: 1}
+        ];
+        const b = base[i % 5];
+        return {
+            locationCode: `L${(i+1).toString().padStart(3, '0')}`,
+            locationName: b.locationName,
+            productId: b.productId,
+            productName: b.productName,
+            spec: b.spec,
+            locationQty: 150 - i*5,
+            occupiedQty: 30 - i,
+            availableQty: 120 - i*4,
+            capacity: b.capacity,
+            status: b.status
+        };
+    });
+    
+    const statusMap = ['正常', '预警', '缺货'];
+    
+    // 分页参数
+    let productPage = 1, batchPage = 1, locationPage = 1;
+    const pageSize = 10;
+    
+    // 页签切换函数
+    function switchTab(tabName) {
+        // 更新页签样式
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+        
+        // 更新内容显示
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        
+        // 渲染对应数据
+        if (tabName === 'product') {
+            renderProduct();
+        } else if (tabName === 'batch') {
+            renderBatch();
+        } else if (tabName === 'location') {
+            renderLocation();
+        }
+    }
+    
+    // 通用函数
+    function getQtyClass(qty, safetyQty) {
+        if (qty === 0) return 'qty-danger';
+        if (qty <= safetyQty) return 'qty-warning';
+        return 'qty-highlight';
+    }
+    
+    function getStatusClass(qty, safetyQty) {
+        if (qty === 0) return 'status-2';
+        if (qty <= safetyQty) return 'status-1';
+        return 'status-0';
+    }
+    
+    // 产品库存渲染
+    function renderProduct() {
+        const tbody = document.getElementById('product-tbody');
+        tbody.innerHTML = '';
+        const start = (productPage-1)*pageSize;
+        const end = start + pageSize;
+        productData.slice(start, end).forEach((row, idx) => {
+            const qtyClass = getQtyClass(row.stockQty, row.safetyQty);
+            const statusClass = getStatusClass(row.stockQty, row.safetyQty);
+            tbody.innerHTML += `<tr>
+                <td>${row.id}</td>
+                <td>${row.name}</td>
+                <td>${row.spec}</td>
+                <td class="${qtyClass}">${row.stockQty}</td>
+                <td class="qty">${row.occupiedQty}</td>
+                <td class="qty">${row.availableQty}</td>
+                <td class="qty">${row.inProduction}</td>
+                <td class="qty">${row.qcPending}</td>
+                <td class="qty">${row.safetyQty}</td>
+                <td><span class="status-tag ${statusClass}">${statusMap[row.status]}</span></td>
+                <td>${row.lastIn}</td>
+                <td>${row.lastOut}</td>
+                <td class="sticky-col">
+                    <button class='action-btn' onclick='viewProductDetail(${start+idx})'>查看详情</button>
+                    <button class='action-btn' onclick='showStockModal("product", ${start+idx})'>库存调整</button>
+                </td>
+            </tr>`;
+        });
+        renderProductPagination();
+    }
+    
+    function renderProductPagination() {
+        let html = '';
+        const total = productData.length;
+        const pageCount = Math.ceil(total / pageSize);
+        html += `<div style='margin:16px 0;text-align:right;'>`;
+        html += `<button onclick='gotoProductPage(1)' ${productPage===1?'disabled':''}>首页</button>`;
+        html += `<button onclick='gotoProductPage(${productPage-1})' ${productPage===1?'disabled':''}>上一页</button>`;
+        for(let i=1;i<=pageCount;i++){
+            html += `<button onclick='gotoProductPage(${i})' ${productPage===i?'style=\"background:#409eff;color:#fff;\"':''}>${i}</button>`;
+        }
+        html += `<button onclick='gotoProductPage(${productPage+1})' ${productPage===pageCount?'disabled':''}>下一页</button>`;
+        html += `<button onclick='gotoProductPage(${pageCount})' ${productPage===pageCount?'disabled':''}>末页</button>`;
+        html += ` 共${total}条`;
+        html += `</div>`;
+        let container = document.getElementById('product-pagination');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'product-pagination';
+            document.getElementById('product-tab').appendChild(container);
+        }
+        container.innerHTML = html;
+    }
+    
+    function gotoProductPage(page) {
+        const total = productData.length;
+        const pageCount = Math.ceil(total / pageSize);
+        if(page<1||page>pageCount) return;
+        productPage = page;
+        renderProduct();
+    }
+    
+    // 批次库存渲染
+    function renderBatch() {
+        const tbody = document.getElementById('batch-tbody');
+        tbody.innerHTML = '';
+        const start = (batchPage-1)*pageSize;
+        const end = start + pageSize;
+        batchData.slice(start, end).forEach((row, idx) => {
+            const qtyClass = getQtyClass(row.batchQty, 10); // 批次安全库存设为10
+            const statusClass = getStatusClass(row.batchQty, 10);
+            tbody.innerHTML += `<tr>
+                <td>${row.batchNo}</td>
+                <td>${row.productId}</td>
+                <td>${row.productName}</td>
+                <td>${row.spec}</td>
+                <td>${row.location}</td>
+                <td class="${qtyClass}">${row.batchQty}</td>
+                <td class="qty">${row.occupiedQty}</td>
+                <td class="qty">${row.availableQty}</td>
+                <td>${row.productionDate}</td>
+                <td>${row.expiryDate}</td>
+                <td><span class="status-tag ${statusClass}">${statusMap[row.status]}</span></td>
+                <td class="sticky-col">
+                    <button class='action-btn' onclick='viewBatchDetail(${start+idx})'>查看详情</button>
+                    <button class='action-btn' onclick='showStockModal("batch", ${start+idx})'>库存调整</button>
+                </td>
+            </tr>`;
+        });
+        renderBatchPagination();
+    }
+    
+    function renderBatchPagination() {
+        let html = '';
+        const total = batchData.length;
+        const pageCount = Math.ceil(total / pageSize);
+        html += `<div style='margin:16px 0;text-align:right;'>`;
+        html += `<button onclick='gotoBatchPage(1)' ${batchPage===1?'disabled':''}>首页</button>`;
+        html += `<button onclick='gotoBatchPage(${batchPage-1})' ${batchPage===1?'disabled':''}>上一页</button>`;
+        for(let i=1;i<=pageCount;i++){
+            html += `<button onclick='gotoBatchPage(${i})' ${batchPage===i?'style=\"background:#409eff;color:#fff;\"':''}>${i}</button>`;
+        }
+        html += `<button onclick='gotoBatchPage(${batchPage+1})' ${batchPage===pageCount?'disabled':''}>下一页</button>`;
+        html += `<button onclick='gotoBatchPage(${pageCount})' ${batchPage===pageCount?'disabled':''}>末页</button>`;
+        html += ` 共${total}条`;
+        html += `</div>`;
+        let container = document.getElementById('batch-pagination');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'batch-pagination';
+            document.getElementById('batch-tab').appendChild(container);
+        }
+        container.innerHTML = html;
+    }
+    
+    function gotoBatchPage(page) {
+        const total = batchData.length;
+        const pageCount = Math.ceil(total / pageSize);
+        if(page<1||page>pageCount) return;
+        batchPage = page;
+        renderBatch();
+    }
+    
+    // 库位库存渲染
+    function renderLocation() {
+        const tbody = document.getElementById('location-tbody');
+        tbody.innerHTML = '';
+        const start = (locationPage-1)*pageSize;
+        const end = start + pageSize;
+        locationData.slice(start, end).forEach((row, idx) => {
+            const qtyClass = getQtyClass(row.locationQty, row.capacity * 0.2); // 安全库存为容量的20%
+            const statusClass = getStatusClass(row.locationQty, row.capacity * 0.2);
+            const usageRate = Math.round((row.locationQty / row.capacity) * 100);
+            tbody.innerHTML += `<tr>
+                <td>${row.locationCode}</td>
+                <td>${row.locationName}</td>
+                <td>${row.productId}</td>
+                <td>${row.productName}</td>
+                <td>${row.spec}</td>
+                <td class="${qtyClass}">${row.locationQty}</td>
+                <td class="qty">${row.occupiedQty}</td>
+                <td class="qty">${row.availableQty}</td>
+                <td class="qty">${row.capacity}</td>
+                <td class="qty">${usageRate}%</td>
+                <td><span class="status-tag ${statusClass}">${statusMap[row.status]}</span></td>
+                <td class="sticky-col">
+                    <button class='action-btn' onclick='viewLocationDetail(${start+idx})'>查看详情</button>
+                    <button class='action-btn' onclick='showStockModal("location", ${start+idx})'>库存调整</button>
+                </td>
+            </tr>`;
+        });
+        renderLocationPagination();
+    }
+    
+    function renderLocationPagination() {
+        let html = '';
+        const total = locationData.length;
+        const pageCount = Math.ceil(total / pageSize);
+        html += `<div style='margin:16px 0;text-align:right;'>`;
+        html += `<button onclick='gotoLocationPage(1)' ${locationPage===1?'disabled':''}>首页</button>`;
+        html += `<button onclick='gotoLocationPage(${locationPage-1})' ${locationPage===1?'disabled':''}>上一页</button>`;
+        for(let i=1;i<=pageCount;i++){
+            html += `<button onclick='gotoLocationPage(${i})' ${locationPage===i?'style=\"background:#409eff;color:#fff;\"':''}>${i}</button>`;
+        }
+        html += `<button onclick='gotoLocationPage(${locationPage+1})' ${locationPage===pageCount?'disabled':''}>下一页</button>`;
+        html += `<button onclick='gotoLocationPage(${pageCount})' ${locationPage===pageCount?'disabled':''}>末页</button>`;
+        html += ` 共${total}条`;
+        html += `</div>`;
+        let container = document.getElementById('location-pagination');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'location-pagination';
+            document.getElementById('location-tab').appendChild(container);
+        }
+        container.innerHTML = html;
+    }
+    
+    function gotoLocationPage(page) {
+        const total = locationData.length;
+        const pageCount = Math.ceil(total / pageSize);
+        if(page<1||page>pageCount) return;
+        locationPage = page;
+        renderLocation();
+    }
+    
+    // 产品库存操作函数
+    function viewProductDetail(idx) {
+        const row = productData[idx];
+        alert(`产品详情：\n产品编码：${row.id}\n产品名称：${row.name}\n规格型号：${row.spec}\n在库库存：${row.stockQty}\n占用数量：${row.occupiedQty}\n可用数量：${row.availableQty}\n生产中：${row.inProduction}\n质检待上架：${row.qcPending}\n安全库存：${row.safetyQty}`);
+    }
+    
+    let stockModalType = '', stockModalIdx = -1;
+    function showStockModal(type, idx) {
+        stockModalType = type;
+        stockModalIdx = idx;
+        let title = '', body = '', val = 0;
+        if(type==='product') {
+            title = '产品库存调整';
+            body = `请输入新在库库存数量（产品：${productData[idx].name}）：`;
+            val = productData[idx].stockQty;
+        } else if(type==='batch') {
+            title = '批次库存调整';
+            body = `请输入新批次库存数量（批次：${batchData[idx].batchNo}）：`;
+            val = batchData[idx].batchQty;
+        } else if(type==='location') {
+            title = '库位库存调整';
+            body = `请输入新库位库存数量（库位：${locationData[idx].locationCode}）：`;
+            val = locationData[idx].locationQty;
+        }
+        document.getElementById('stockModalTitle').innerText = title;
+        document.getElementById('stockModalBody').innerText = body;
+        document.getElementById('stockModalInput').value = val;
+        document.getElementById('stockModal').style.display = 'block';
+    }
+    function closeStockModal() {
+        document.getElementById('stockModal').style.display = 'none';
+        stockModalType = '';
+        stockModalIdx = -1;
+    }
+    function confirmStockModal() {
+        const val = parseInt(document.getElementById('stockModalInput').value);
+        if(isNaN(val) || val<0) { alert('请输入有效的库存数量'); return; }
+        if(stockModalType==='product') {
+            productData[stockModalIdx].stockQty = val;
+            // 状态联动
+            if(val===0) productData[stockModalIdx].status=2;
+            else if(val<=productData[stockModalIdx].safetyQty) productData[stockModalIdx].status=1;
+            else productData[stockModalIdx].status=0;
+            renderProduct();
+        } else if(stockModalType==='batch') {
+            batchData[stockModalIdx].batchQty = val;
+            if(val===0) batchData[stockModalIdx].status=2;
+            else if(val<=10) batchData[stockModalIdx].status=1;
+            else batchData[stockModalIdx].status=0;
+            renderBatch();
+        } else if(stockModalType==='location') {
+            locationData[stockModalIdx].locationQty = val;
+            if(val===0) locationData[stockModalIdx].status=2;
+            else if(val<=locationData[stockModalIdx].capacity*0.2) locationData[stockModalIdx].status=1;
+            else locationData[stockModalIdx].status=0;
+            renderLocation();
+        }
+        closeStockModal();
+    }
+    
+    // 批次库存操作函数
+    function viewBatchDetail(idx) {
+        const row = batchData[idx];
+        alert(`批次详情：\n批次号：${row.batchNo}\n产品名称：${row.productName}\n规格型号：${row.spec}\n库位：${row.location}\n批次库存：${row.batchQty}\n占用数量：${row.occupiedQty}\n可用数量：${row.availableQty}\n生产日期：${row.productionDate}\n有效期：${row.expiryDate}`);
+    }
+    
+    // 库位库存操作函数
+    function viewLocationDetail(idx) {
+        const row = locationData[idx];
+        const usageRate = Math.round((row.locationQty / row.capacity) * 100);
+        alert(`库位详情：\n库位编码：${row.locationCode}\n库位名称：${row.locationName}\n产品名称：${row.productName}\n规格型号：${row.spec}\n库位库存：${row.locationQty}\n占用数量：${row.occupiedQty}\n可用数量：${row.availableQty}\n库位容量：${row.capacity}\n占用率：${usageRate}%`);
+    }
+    
+    // 初始化渲染
+    renderProduct();
+</script>
+</body>
+</html> 

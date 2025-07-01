@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>供应商仓简易管理平台</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: '微软雅黑', Arial, sans-serif;
+            background: #f5f6fa;
+        }
+        .layout {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 210px;
+            background: #222c3c;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 8px #e0e0e0;
+        }
+        .sidebar-title {
+            font-size: 20px;
+            font-weight: bold;
+            padding: 28px 0 18px 0;
+            text-align: center;
+            letter-spacing: 2px;
+            border-bottom: 1px solid #2e3a4d;
+        }
+        .menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 18px 0;
+            gap: 8px;
+        }
+        .menu-item {
+            padding: 12px 32px;
+            font-size: 16px;
+            color: #cfd8dc;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .menu-item.active {
+            background: #fff;
+            color: #222c3c;
+            border-left: 4px solid #409eff;
+            font-weight: bold;
+        }
+        .content {
+            flex: 1;
+            background: #f5f6fa;
+            display: flex;
+            flex-direction: column;
+        }
+        .iframe-content {
+            flex: 1;
+            border: none;
+            width: 100%;
+            background: #fff;
+        }
+        .main { max-width: 1200px; margin: 32px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px #e0e4ea; padding: 32px 36px; }
+        h2 { font-size: 22px; margin-bottom: 22px; color: #222; letter-spacing: 1px; }
+        .toolbar { margin-bottom: 22px; display: flex; align-items: center; gap: 12px; }
+        .toolbar input, .toolbar select {
+            padding: 6px 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 15px;
+            background: #fafbfc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .toolbar input:focus, .toolbar select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px #ecf5ff;
+            background: #fff;
+        }
+        .toolbar button {
+            padding: 7px 20px;
+            background: #409eff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #e0e4ea;
+        }
+        .toolbar button:hover:not(:disabled) {
+            background: #66b1ff;
+        }
+        .toolbar button:disabled {
+            background: #c0c4cc;
+            cursor: not-allowed;
+        }
+        .table-container { overflow-x: auto; border-radius: 10px; box-shadow: 0 2px 12px #f0f1f5; position: relative; }
+        table {
+            min-width: 100%; border-collapse: separate; border-spacing: 0;
+            background: #fff;
+        }
+        th, td {
+            padding: 12px 10px; border-bottom: 1px solid #ebeef5; text-align: left; font-size: 15px; white-space: nowrap;
+        }
+        th {
+            background: #f5f7fa; color: #333; font-weight: 600; border-bottom: 2px solid #ebeef5;
+        }
+        tr {
+            transition: background 0.2s;
+        }
+        tbody tr:hover {
+            background: #f4f8ff;
+        }
+        .status-tag {
+            padding: 3px 14px; border-radius: 16px; font-size: 14px; color: #fff; font-weight: 500;
+            display: inline-block; min-width: 60px; text-align: center;
+        }
+        .status-0 { background: #67c23a; }
+        .status-1 { background: #e6a23c; }
+        .status-2 { background: #f56c6c; }
+        .action-btn {
+            padding: 6px 18px; border: none; border-radius: 6px; background: #409eff; color: #fff;
+            cursor: pointer; font-size: 15px; margin-right: 8px; transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #e0e4ea;
+        }
+        .action-btn:hover:not(:disabled) { background: #66b1ff; }
+        .action-btn:disabled { background: #c0c4cc; cursor: not-allowed; }
+        .qty { color: #666; font-variant-numeric: tabular-nums; }
+        .qty-highlight { color: #409eff; font-weight: bold; }
+        .input-cell input {
+            padding: 6px 10px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 15px; background: #fafbfc; transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+        }
+        .input-cell input:focus { border-color: #409eff; box-shadow: 0 0 0 2px #ecf5ff; background: #fff; }
+        /* 分页控件 */
+        .el-pagination { margin: 18px 0 0; text-align: right; user-select: none; }
+        .el-pagination button {
+            background: #fff; border: 1px solid #dcdfe6; color: #606266; border-radius: 4px; margin: 0 2px; padding: 5px 13px; font-size: 15px; cursor: pointer; transition: all 0.2s;
+        }
+        .el-pagination button[disabled] { color: #c0c4cc; border-color: #ebeef5; background: #f5f7fa; cursor: not-allowed; }
+        .el-pagination .active {
+            background: #409eff; color: #fff; border-color: #409eff;
+        }
+        .sticky-col {
+            position: sticky;
+            right: 0;
+            background: #fff;
+            z-index: 2;
+            min-width: 120px;
+            box-shadow: -2px 0 8px #f0f1f5;
+        }
+        .modal-content {
+            position: relative;
+            z-index: 1;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 40px #0002, 0 1.5px 6px #409eff22;
+            padding: 32px 36px 24px 36px;
+            width: 400px;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: modal-fade-in 0.25s cubic-bezier(.55,0,.1,1);
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div class="sidebar">
+        <div class="sidebar-title">硕麦合作协同平台</div>
+        <div class="menu">
+            <div class="menu-item active" data-page="order.html">订单管理</div>
+            <div class="menu-item" data-page="production.html">生产管理</div>
+            <div class="menu-item" data-page="qc.html">质检入库</div>
+            <div class="menu-item" data-page="inventory.html">库存管理</div>
+            <div class="menu-item" data-page="plan.html">发货计划</div>
+        </div>
+    </div>
+    <div class="content">
+        <iframe id="main-iframe" class="iframe-content" src="order.html"></iframe>
+    </div>
+</div>
+<script>
+    const menuItems = document.querySelectorAll('.menu-item');
+    const iframe = document.getElementById('main-iframe');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            menuItems.forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            iframe.src = this.getAttribute('data-page');
+        });
+    });
+</script>
+</body>
+</html> 

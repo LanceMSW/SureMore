@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>订单管理</title>
+    <style>
+        body { margin: 0; font-family: '微软雅黑', Arial, sans-serif; background: #f5f6fa; }
+        .main { max-width: 1200px; margin: 32px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px #e0e4ea; padding: 32px 36px; }
+        h2 { font-size: 22px; margin-bottom: 22px; color: #222; letter-spacing: 1px; }
+        .toolbar { margin-bottom: 22px; display: flex; align-items: center; gap: 12px; }
+        .toolbar input, .toolbar select {
+            padding: 6px 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 15px;
+            background: #fafbfc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .toolbar input:focus, .toolbar select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px #ecf5ff;
+            background: #fff;
+        }
+        .toolbar button {
+            padding: 7px 20px;
+            background: #409eff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #e0e4ea;
+        }
+        .toolbar button:hover:not(:disabled) {
+            background: #66b1ff;
+        }
+        .toolbar button:disabled {
+            background: #c0c4cc;
+            cursor: not-allowed;
+        }
+        .table-container { overflow-x: auto; border-radius: 10px; box-shadow: 0 2px 12px #f0f1f5; position: relative; }
+        table {
+            min-width: 100%; border-collapse: separate; border-spacing: 0;
+            background: #fff;
+        }
+        th, td {
+            padding: 12px 10px; border-bottom: 1px solid #ebeef5; text-align: left; font-size: 15px; white-space: nowrap;
+        }
+        th {
+            background: #f5f7fa; color: #333; font-weight: 600; border-bottom: 2px solid #ebeef5;
+        }
+        tr {
+            transition: background 0.2s;
+        }
+        tbody tr:hover {
+            background: #f4f8ff;
+        }
+        .status-tag {
+            padding: 3px 14px; border-radius: 16px; font-size: 14px; color: #fff; font-weight: 500;
+            display: inline-block; min-width: 60px; text-align: center;
+        }
+        .status-0 { background: #67c23a; }
+        .status-1 { background: #e6a23c; }
+        .status-2 { background: #f56c6c; }
+        .action-btn {
+            padding: 6px 18px; border: none; border-radius: 6px; background: #409eff; color: #fff;
+            cursor: pointer; font-size: 15px; margin-right: 8px; transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #e0e4ea;
+        }
+        .action-btn:hover:not(:disabled) { background: #66b1ff; }
+        .action-btn:disabled { background: #c0c4cc; cursor: not-allowed; }
+        .qty { color: #666; font-variant-numeric: tabular-nums; }
+        .qty-highlight { color: #409eff; font-weight: bold; }
+        .input-cell input {
+            padding: 6px 10px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 15px; background: #fafbfc; transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+        }
+        .input-cell input:focus { border-color: #409eff; box-shadow: 0 0 0 2px #ecf5ff; background: #fff; }
+        /* 分页控件 */
+        .el-pagination { margin: 18px 0 0; text-align: right; user-select: none; }
+        .el-pagination button {
+            background: #fff; border: 1px solid #dcdfe6; color: #606266; border-radius: 4px; margin: 0 2px; padding: 5px 13px; font-size: 15px; cursor: pointer; transition: all 0.2s;
+        }
+        .el-pagination button[disabled] { color: #c0c4cc; border-color: #ebeef5; background: #f5f7fa; cursor: not-allowed; }
+        .el-pagination .active {
+            background: #409eff; color: #fff; border-color: #409eff;
+        }
+        .sticky-col {
+            position: sticky;
+            right: 0;
+            background: #fff;
+            z-index: 2;
+            min-width: 120px;
+            box-shadow: -2px 0 8px #f0f1f5;
+        }
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            inset: 0;
+            margin: auto;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-mask {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.25);
+            z-index: 0;
+        }
+        .modal-content {
+            position: relative;
+            z-index: 1;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 40px #0002, 0 1.5px 6px #409eff22;
+            padding: 32px 36px 24px 36px;
+            width: 400px;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: modal-fade-in 0.25s cubic-bezier(.55,0,.1,1);
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 18px;
+            margin-top: 28px;
+        }
+        .modal-btn {
+            border-radius: 6px;
+            font-size: 15px;
+            min-width: 80px;
+            padding: 7px 0;
+        }
+        .modal-btn-primary {
+            background: #409eff;
+            color: #fff;
+            border: none;
+        }
+        .modal-btn-primary:hover {
+            background: #66b1ff;
+        }
+        .modal-btn-default {
+            background: #f5f7fa;
+            color: #333;
+            border: none;
+        }
+        @keyframes modal-fade-in {
+            0% { opacity: 0; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        html, body {
+            height: 100%;
+            min-height: 100%;
+        }
+        body {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+<div class="main">
+    <h2>订单管理</h2>
+    <div class="toolbar">
+        <input type="text" placeholder="订单号/客户/供应商/产品" />
+        <select>
+            <option>全部状态</option>
+            <option>待接单</option>
+            <option>生产中</option>
+            <option>已完成</option>
+        </select>
+        <button onclick="alert('筛选功能仅演示')">筛选</button>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>订单号</th>
+                <th>客户</th>
+                <th>供应商</th>
+                <th>产品</th>
+                <th>订单数量</th>
+                <th>生产中数量</th>
+                <th>待质检数量</th>
+                <th>在库数量</th>
+                <th>已发货数量</th>
+                <th>交期</th>
+                <th>状态</th>
+                <th class="sticky-col">操作</th>
+            </tr>
+            </thead>
+            <tbody id="order-tbody">
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="orderModal" class="modal" style="display:none;">
+  <div class="modal-mask" onclick="closeOrderModal()"></div>
+  <div class="modal-content">
+    <div class="modal-title">确认接单</div>
+    <div>是否确认接受该订单？</div>
+    <div class="modal-buttons">
+      <button class="modal-btn modal-btn-default" onclick="closeOrderModal()">取消</button>
+      <button class="modal-btn modal-btn-primary" onclick="confirmOrderModal()">确认</button>
+    </div>
+  </div>
+</div>
+<script>
+    // 扩充20条订单数据
+    const data = Array.from({length: 20}, (_, i) => {
+        const base = [
+            // status: 0=待接单, 1=生产中, 2=已完成
+            {customer: '亚马逊', supplier: '江苏智造', product: '电机A', status: 0},
+            {customer: 'eBay', supplier: '浙江科技', product: '外壳B', status: 1},
+            {customer: '沃尔玛', supplier: '深圳创新', product: '主板C', status: 2}
+        ];
+        const b = base[i % 3];
+        const orderQty = 1000 - i*10;
+        let producingQty = 0, qcQty = 0, stockQty = 0, shippedQty = 0;
+        if (b.status === 1) {
+            // 生产中：生产中+待质检+在库+已发货=订单数量
+            producingQty = 200 + i*5;
+            qcQty = 100 + i*2;
+            shippedQty = 50 + i*2;
+            stockQty = orderQty - (producingQty + qcQty + shippedQty);
+            if (stockQty < 0) { stockQty = 0; producingQty = orderQty - qcQty - shippedQty; }
+        } else if (b.status === 2) {
+            // 已完成：生产中=0, 待质检=0, 在库+已发货=订单数量
+            shippedQty = 200 + i*10;
+            stockQty = orderQty - shippedQty;
+            if (stockQty < 0) { stockQty = 0; shippedQty = orderQty; }
+        }
+        return {
+            id: `PO202405${(i+1).toString().padStart(2, '0')}`,
+            customer: b.customer,
+            supplier: b.supplier,
+            product: b.product,
+            orderQty,
+            producingQty,
+            qcQty,
+            stockQty,
+            shippedQty,
+            date: `2024-06-${(i%28+1).toString().padStart(2,'0')}`,
+            status: b.status
+        };
+    });
+    const statusMap = ['待接单', '生产中', '已完成'];
+    // 分页参数
+    let currentPage = 1;
+    const pageSize = 10;
+    
+    function validateStatus(row) {
+        if (row.status === 0) {
+            // 待接单状态：除了订单数量，所有数量都是0
+            return row.producingQty === 0 && row.qcQty === 0 && row.stockQty === 0 && row.shippedQty === 0;
+        } else if (row.status === 1) {
+            // 生产中状态：存在生产中数量，可存在已发货数量
+            return row.producingQty > 0;
+        } else if (row.status === 2) {
+            // 已完成状态：没有生产中和待质检数量
+            return row.producingQty === 0 && row.qcQty === 0;
+        }
+        return false;
+    }
+    
+    function render() {
+        const tbody = document.getElementById('order-tbody');
+        tbody.innerHTML = '';
+        const start = (currentPage-1)*pageSize;
+        const end = start + pageSize;
+        data.slice(start, end).forEach((row, idx) => {
+            // 验证数据状态的合法性
+            if (!validateStatus(row)) {
+                console.warn(`订单 ${row.id} 的状态与数量不匹配`);
+            }
+            
+            tbody.innerHTML += `<tr>
+                <td>${row.id}</td>
+                <td>${row.customer}</td>
+                <td>${row.supplier}</td>
+                <td>${row.product}</td>
+                <td class="qty">${row.orderQty}</td>
+                <td class="qty ${row.producingQty > 0 ? 'qty-highlight' : ''}">${row.producingQty}</td>
+                <td class="qty ${row.qcQty > 0 ? 'qty-highlight' : ''}">${row.qcQty}</td>
+                <td class="qty ${row.stockQty > 0 ? 'qty-highlight' : ''}">${row.stockQty}</td>
+                <td class="qty ${row.shippedQty > 0 ? 'qty-highlight' : ''}">${row.shippedQty}</td>
+                <td>${row.date}</td>
+                <td><span class="status-tag status-${row.status}">${statusMap[row.status]}</span></td>
+                <td class="sticky-col">
+                    ${row.status === 0 ? `<button class='action-btn' onclick='showOrderModal(${start+idx})'>确认接单</button>` : ''}
+                </td>
+            </tr>`;
+        });
+        renderPagination();
+    }
+    
+    let orderModalIdx = -1;
+    function showOrderModal(idx) {
+        orderModalIdx = idx;
+        document.getElementById('orderModal').style.display = 'block';
+    }
+    function closeOrderModal() {
+        document.getElementById('orderModal').style.display = 'none';
+        orderModalIdx = -1;
+    }
+    function confirmOrderModal() {
+        if(orderModalIdx === -1) return;
+        data[orderModalIdx].status = 1;
+        closeOrderModal();
+        render();
+    }
+    
+    function renderPagination() {
+        let html = '';
+        const total = data.length;
+        const pageCount = Math.ceil(total / pageSize);
+        html += `<div class='el-pagination'>`;
+        html += `<button onclick='gotoPage(1)' ${currentPage===1?'disabled':''}>首页</button>`;
+        html += `<button onclick='gotoPage(${currentPage-1})' ${currentPage===1?'disabled':''}>上一页</button>`;
+        for(let i=1;i<=pageCount;i++){
+            html += `<button onclick='gotoPage(${i})' class='${currentPage===i?'active':''}'>${i}</button>`;
+        }
+        html += `<button onclick='gotoPage(${currentPage+1})' ${currentPage===pageCount?'disabled':''}>下一页</button>`;
+        html += `<button onclick='gotoPage(${pageCount})' ${currentPage===pageCount?'disabled':''}>末页</button>`;
+        html += ` <span style='margin-left:8px;color:#909399;'>共${total}条</span>`;
+        html += `</div>`;
+        let container = document.getElementById('order-pagination');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'order-pagination';
+            document.querySelector('.main').appendChild(container);
+        }
+        container.innerHTML = html;
+    }
+    
+    function gotoPage(page) {
+        const total = data.length;
+        const pageCount = Math.ceil(total / pageSize);
+        if(page<1||page>pageCount) return;
+        currentPage = page;
+        render();
+    }
+    
+    render();
+</script>
+</body>
+</html> 

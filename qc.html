@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>质检入库</title>
+    <style>
+        body { margin: 0; font-family: '微软雅黑', Arial, sans-serif; background: #f5f6fa; }
+        .main { max-width: 1400px; margin: 32px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px #e0e4ea; padding: 32px 36px; }
+        h2 { font-size: 22px; margin-bottom: 22px; color: #222; letter-spacing: 1px; }
+        .toolbar { margin-bottom: 22px; display: flex; align-items: center; gap: 12px; }
+        .toolbar input, .toolbar select {
+            padding: 6px 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            font-size: 15px;
+            background: #fafbfc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .toolbar input:focus, .toolbar select:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px #ecf5ff;
+            background: #fff;
+        }
+        .toolbar button {
+            padding: 7px 20px;
+            background: #409eff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #e0e4ea;
+        }
+        .toolbar button:hover:not(:disabled) {
+            background: #66b1ff;
+        }
+        .toolbar button:disabled {
+            background: #c0c4cc;
+            cursor: not-allowed;
+        }
+        .table-container { overflow-x: auto; border-radius: 10px; box-shadow: 0 2px 12px #f0f1f5; position: relative; }
+        table {
+            min-width: 100%; border-collapse: separate; border-spacing: 0;
+            background: #fff;
+        }
+        th, td {
+            padding: 12px 10px; border-bottom: 1px solid #ebeef5; text-align: left; font-size: 15px; white-space: nowrap;
+        }
+        th {
+            background: #f5f7fa; color: #333; font-weight: 600; border-bottom: 2px solid #ebeef5;
+        }
+        tr {
+            transition: background 0.2s;
+        }
+        tbody tr:hover {
+            background: #f4f8ff;
+        }
+        .status-tag {
+            padding: 3px 14px; border-radius: 16px; font-size: 14px; color: #fff; font-weight: 500;
+            display: inline-block; min-width: 60px; text-align: center;
+        }
+        .status-0 { background: #409eff; }
+        .status-1 { background: #67c23a; }
+        .action-btn {
+            padding: 6px 18px; border: none; border-radius: 6px; background: #409eff; color: #fff;
+            cursor: pointer; font-size: 15px; margin-right: 8px; transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px #e0e4ea;
+        }
+        .action-btn:hover:not(:disabled) { background: #66b1ff; }
+        .action-btn:disabled { background: #c0c4cc; cursor: not-allowed; }
+        .qty { color: #666; font-variant-numeric: tabular-nums; }
+        .qty-highlight { color: #409eff; font-weight: bold; }
+        .input-cell input {
+            padding: 6px 10px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 15px; background: #fafbfc; transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+        }
+        .input-cell input:focus { border-color: #409eff; box-shadow: 0 0 0 2px #ecf5ff; background: #fff; }
+        /* 分页控件 */
+        .el-pagination { margin: 18px 0 0; text-align: right; user-select: none; }
+        .el-pagination button {
+            background: #fff; border: 1px solid #dcdfe6; color: #606266; border-radius: 4px; margin: 0 2px; padding: 5px 13px; font-size: 15px; cursor: pointer; transition: all 0.2s;
+        }
+        .el-pagination button[disabled] { color: #c0c4cc; border-color: #ebeef5; background: #f5f7fa; cursor: not-allowed; }
+        .el-pagination .active {
+            background: #409eff; color: #fff; border-color: #409eff;
+        }
+        .sub-text { font-size: 12px; color: #666; margin-top: 4px; }
+        .ref-text { font-size: 13px; color: #666; }
+        .ref-label { display: inline-block; width: 70px; }
+        .error-text { color: #f56c6c; font-size: 12px; }
+        .text-success { color: #67c23a; }
+        .text-danger { color: #f56c6c; }
+        .sticky-col {
+            position: sticky;
+            right: 0;
+            background: #fff;
+            z-index: 2;
+            min-width: 120px;
+            box-shadow: -2px 0 8px #f0f1f5;
+        }
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-mask {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.25);
+            z-index: 0;
+        }
+        .modal-content {
+            position: relative;
+            z-index: 1;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 40px #0002, 0 1.5px 6px #409eff22;
+            padding: 32px 36px 24px 36px;
+            width: 400px;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: modal-fade-in 0.25s cubic-bezier(.55,0,.1,1);
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 18px;
+            margin-top: 28px;
+        }
+        .modal-btn {
+            border-radius: 6px;
+            font-size: 15px;
+            min-width: 80px;
+            padding: 7px 0;
+        }
+        .modal-btn-primary {
+            background: #409eff;
+            color: #fff;
+            border: none;
+        }
+        .modal-btn-primary:hover {
+            background: #66b1ff;
+        }
+        .modal-btn-default {
+            background: #f5f7fa;
+            color: #333;
+            border: none;
+        }
+        @keyframes modal-fade-in {
+            0% { opacity: 0; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        html, body {
+            height: 100%;
+            min-height: 100%;
+        }
+        body {
+            position: relative;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+<div class="main">
+    <h2>质检入库</h2>
+    <div class="toolbar">
+        <input type="text" placeholder="质检单号/生产单号/订单号" />
+        <select>
+            <option>全部状态</option>
+            <option>质检中</option>
+            <option>质检完成</option>
+        </select>
+        <button onclick="alert('筛选功能仅演示')">筛选</button>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>质检单号</th>
+                <th>关联单号</th>
+                <th>产品</th>
+                <th>类型</th>
+                <th>生产数量</th>
+                <th>待检数量</th>
+                <th>已检数量</th>
+                <th>合格数</th>
+                <th>不合格数</th>
+                <th>状态</th>
+                <th class="sticky-col">操作</th>
+            </tr>
+            </thead>
+            <tbody id="qc-tbody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 扩充20条质检单数据
+    const data = Array.from({length: 20}, (_, i) => {
+        const base = [
+            {productionId: 'SC20240502', orderId: 'PO20240501', product: '产品A', type: '成品', productionQty: 500, status: 0},
+            {productionId: 'SC20240501', orderId: 'PO20240502', product: '产品B', type: '半成品', productionQty: 300, status: 1},
+            {productionId: 'SC20240503', orderId: 'PO20240503', product: '产品C', type: '成品', productionQty: 800, status: 0}
+        ];
+        const b = base[i % 3];
+        const inspected = b.status === 1 ? {qualified: b.productionQty, unqualified: 0} : {qualified: 100 + i*5, unqualified: 20 + i*2};
+        return {
+            id: `QC202405${(i+1).toString().padStart(2, '0')}`,
+            productionId: b.productionId,
+            orderId: b.orderId,
+            product: b.product,
+            type: b.type,
+            productionQty: b.productionQty - i*10,
+            inspectedQty: inspected,
+            qualifiedInput: '',
+            unqualifiedInput: '',
+            status: b.status
+        };
+    });
+    const statusMap = ['质检中', '质检完成'];
+    // 分页参数
+    let currentPage = 1;
+    const pageSize = 10;
+    
+    function calculatePendingQty(row) {
+        const totalInspected = row.inspectedQty.qualified + row.inspectedQty.unqualified;
+        return row.productionQty - totalInspected;
+    }
+    
+    function validateInputs(row) {
+        const qualified = parseInt(row.qualifiedInput) || 0;
+        const unqualified = parseInt(row.unqualifiedInput) || 0;
+        const total = qualified + unqualified;
+        const pendingQty = calculatePendingQty(row);
+        
+        if (total === 0) {
+            return { valid: false, message: '请填写检验数量' };
+        }
+        
+        if (total !== pendingQty) {
+            return { valid: false, message: '合格数与不合格数之和必须等于待检数量' };
+        }
+        
+        return { valid: true };
+    }
+    
+    function render() {
+        const tbody = document.getElementById('qc-tbody');
+        tbody.innerHTML = '';
+        const start = (currentPage-1)*pageSize;
+        const end = start + pageSize;
+        data.slice(start, end).forEach((row, idx) => {
+            const totalInspected = row.inspectedQty.qualified + row.inspectedQty.unqualified;
+            const pendingQty = calculatePendingQty(row);
+            tbody.innerHTML += `<tr>
+                <td>${row.id}</td>
+                <td>
+                    <div class="ref-text"><span class="ref-label">生产单号：</span>${row.productionId}</div>
+                    <div class="ref-text"><span class="ref-label">订单号：</span>${row.orderId}</div>
+                </td>
+                <td>${row.product}</td>
+                <td><span class="status-tag ${row.type === '成品' ? 'status-1' : 'status-0'}">${row.type}</span></td>
+                <td class="qty">${row.productionQty}</td>
+                <td class="qty">${row.status === 1 ? '-' : pendingQty}</td>
+                <td>
+                    合格：<span class="qty-highlight">${row.inspectedQty.qualified}</span>
+                    <div class="sub-text">不合格：<span class="text-danger">${row.inspectedQty.unqualified}</span></div>
+                </td>
+                <td class="input-cell">
+                    ${row.status === 0 ? 
+                        `<input type="number" min="0" 
+                            value="${row.qualifiedInput}"
+                            onchange="updateInput(${start+idx}, 'qualified', this.value)"
+                            placeholder="合格数" />` : 
+                        '-'}
+                </td>
+                <td class="input-cell">
+                    ${row.status === 0 ? 
+                        `<input type="number" min="0" 
+                            value="${row.unqualifiedInput}"
+                            onchange="updateInput(${start+idx}, 'unqualified', this.value)"
+                            placeholder="不合格数" />` : 
+                        '-'}
+                </td>
+                <td><span class="status-tag status-${row.status}">${statusMap[row.status]}</span></td>
+                <td class="sticky-col">
+                    ${row.status === 0 ? 
+                        `<button class='action-btn' onclick='completeInspection(${start+idx})'>质检入库</button>` : 
+                        ''}
+                </td>
+            </tr>`;
+        });
+        renderPagination();
+    }
+    
+    function updateInput(idx, type, value) {
+        data[idx][type === 'qualified' ? 'qualifiedInput' : 'unqualifiedInput'] = value;
+    }
+    
+    function completeInspection(idx) {
+        const row = data[idx];
+        const validation = validateInputs(row);
+        
+        if (!validation.valid) {
+            alert(validation.message);
+            return;
+        }
+        
+        const qualified = parseInt(row.qualifiedInput) || 0;
+        const unqualified = parseInt(row.unqualifiedInput) || 0;
+        
+        // 更新数据
+        row.inspectedQty.qualified += qualified;
+        row.inspectedQty.unqualified += unqualified;
+        row.qualifiedInput = '';
+        row.unqualifiedInput = '';
+        
+        // 如果已检数量等于生产数量，更新状态为完成
+        const totalInspected = row.inspectedQty.qualified + row.inspectedQty.unqualified;
+        if (totalInspected === row.productionQty) {
+            row.status = 1;
+        }
+        
+        render();
+    }
+    
+    function renderPagination() {
+        let html = '';
+        const total = data.length;
+        const pageCount = Math.ceil(total / pageSize);
+        html += `<div class='el-pagination'>`;
+        html += `<button onclick='gotoPage(1)' ${currentPage===1?'disabled':''}>首页</button>`;
+        html += `<button onclick='gotoPage(${currentPage-1})' ${currentPage===1?'disabled':''}>上一页</button>`;
+        for(let i=1;i<=pageCount;i++){
+            html += `<button onclick='gotoPage(${i})' class='${currentPage===i?'active':''}'>${i}</button>`;
+        }
+        html += `<button onclick='gotoPage(${currentPage+1})' ${currentPage===pageCount?'disabled':''}>下一页</button>`;
+        html += `<button onclick='gotoPage(${pageCount})' ${currentPage===pageCount?'disabled':''}>末页</button>`;
+        html += ` <span style='margin-left:8px;color:#909399;'>共${total}条</span>`;
+        html += `</div>`;
+        let container = document.getElementById('qc-pagination');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'qc-pagination';
+            document.querySelector('.main').appendChild(container);
+        }
+        container.innerHTML = html;
+    }
+    
+    function gotoPage(page) {
+        const total = data.length;
+        const pageCount = Math.ceil(total / pageSize);
+        if(page<1||page>pageCount) return;
+        currentPage = page;
+        render();
+    }
+    
+    render();
+</script>
+</body>
+</html> 
