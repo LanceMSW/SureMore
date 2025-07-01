@@ -58,8 +58,16 @@
             background: #f4f8ff;
         }
         .status-tag {
-            padding: 3px 14px; border-radius: 16px; font-size: 14px; color: #fff; font-weight: 500;
-            display: inline-block; min-width: 60px; text-align: center;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            color: #fff;
+            font-weight: 500;
+            display: inline-block;
+            min-width: 44px;
+            text-align: center;
+            line-height: 1.2;
+            vertical-align: middle;
         }
         .status-0 { background: #409eff; }
         .status-1 { background: #67c23a; }
@@ -217,14 +225,25 @@
             {productionId: 'SC20240503', orderId: 'PO20240503', product: '产品C', type: '成品', productionQty: 800, status: 0}
         ];
         const b = base[i % 3];
-        const inspected = b.status === 1 ? {qualified: b.productionQty, unqualified: 0} : {qualified: 100 + i*5, unqualified: 20 + i*2};
+        let productionQty = b.productionQty - i*10;
+        if (productionQty < 0) productionQty = 0;
+        let inspected = {qualified: 0, unqualified: 0};
+        let pendingQty = 0;
+        if (b.status === 1) {
+            inspected = {qualified: productionQty, unqualified: 0};
+            pendingQty = 0;
+        } else {
+            inspected = {qualified: 100 + i*5, unqualified: 20 + i*2};
+            const totalInspected = inspected.qualified + inspected.unqualified;
+            pendingQty = Math.max(productionQty - totalInspected, 0);
+        }
         return {
             id: `QC202405${(i+1).toString().padStart(2, '0')}`,
             productionId: b.productionId,
             orderId: b.orderId,
             product: b.product,
             type: b.type,
-            productionQty: b.productionQty - i*10,
+            productionQty,
             inspectedQty: inspected,
             qualifiedInput: '',
             unqualifiedInput: '',

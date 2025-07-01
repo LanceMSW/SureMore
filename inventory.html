@@ -96,24 +96,20 @@
             background: #f4f8ff;
         }
         .status-tag {
-            padding: 3px 14px;
-            border-radius: 16px;
-            font-size: 14px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 13px;
             color: #fff;
             font-weight: 500;
             display: inline-block;
-            min-width: 60px;
+            min-width: 44px;
             text-align: center;
+            line-height: 1.2;
+            vertical-align: middle;
         }
-        .status-0 {
-            background: #67c23a;
-        }
-        .status-1 {
-            background: #e6a23c;
-        }
-        .status-2 {
-            background: #f56c6c;
-        }
+        .status-0 { background: #67c23a; } /* 正常-绿色 */
+        .status-1 { background: #faad14; } /* 预警-橙色 */
+        .status-2 { background: #f56c6c; } /* 缺货-红色 */
         .action-btn {
             padding: 6px 18px;
             border: none;
@@ -585,7 +581,7 @@
                 <td class="qty">${row.inProduction}</td>
                 <td class="qty">${row.qcPending}</td>
                 <td class="qty">${row.safetyQty}</td>
-                <td><span class="status-tag ${statusClass}">${statusMap[row.status]}</span></td>
+                <td><span class="status-tag status-${row.status}">${statusMap[row.status]}</span></td>
                 <td>${row.lastIn}</td>
                 <td>${row.lastOut}</td>
                 <td class="sticky-col">
@@ -648,7 +644,7 @@
                 <td class="qty">${row.availableQty}</td>
                 <td>${row.productionDate}</td>
                 <td>${row.expiryDate}</td>
-                <td><span class="status-tag ${statusClass}">${statusMap[row.status]}</span></td>
+                <td><span class="status-tag status-${row.status}">${statusMap[row.status]}</span></td>
                 <td class="sticky-col">
                     <button class='action-btn' onclick='viewBatchDetail(${start+idx})'>查看详情</button>
                     <button class='action-btn' onclick='showStockModal("batch", ${start+idx})'>库存调整</button>
@@ -710,7 +706,7 @@
                 <td class="qty">${row.availableQty}</td>
                 <td class="qty">${row.capacity}</td>
                 <td class="qty">${usageRate}%</td>
-                <td><span class="status-tag ${statusClass}">${statusMap[row.status]}</span></td>
+                <td><span class="status-tag status-${row.status}">${statusMap[row.status]}</span></td>
                 <td class="sticky-col">
                     <button class='action-btn' onclick='viewLocationDetail(${start+idx})'>查看详情</button>
                     <button class='action-btn' onclick='showStockModal("location", ${start+idx})'>库存调整</button>
