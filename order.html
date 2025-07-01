@@ -23,22 +23,28 @@
             background: #fff;
         }
         .toolbar button {
-            padding: 7px 20px;
-            background: #409eff;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-size: 15px;
+            padding: 4px 12px;
+            background: #fff;
+            color: #409eff;
+            border: 1.5px solid #409eff;
+            border-radius: 5px;
+            font-size: 13px;
             cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px #e0e4ea;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1.5px 6px #e0e4ea;
+            font-weight: 500;
         }
         .toolbar button:hover:not(:disabled) {
-            background: #66b1ff;
+            background: #409eff;
+            color: #fff;
+            border-color: #409eff;
         }
         .toolbar button:disabled {
-            background: #c0c4cc;
+            background: #f5f7fa;
+            color: #c0c4cc;
+            border-color: #ebeef5;
             cursor: not-allowed;
+            box-shadow: none;
         }
         .table-container { overflow-x: auto; border-radius: 10px; box-shadow: 0 2px 12px #f0f1f5; position: relative; }
         table {
@@ -73,12 +79,30 @@
         .status-1 { background: #409eff; } /* 生产中-蓝色 */
         .status-2 { background: #67c23a; } /* 已完成-绿色 */
         .action-btn {
-            padding: 6px 18px; border: none; border-radius: 6px; background: #409eff; color: #fff;
-            cursor: pointer; font-size: 15px; margin-right: 8px; transition: background 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px #e0e4ea;
+            padding: 4px 12px;
+            border: 1.5px solid #409eff;
+            border-radius: 5px;
+            background: #fff;
+            color: #409eff;
+            cursor: pointer;
+            font-size: 13px;
+            margin-right: 8px;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1.5px 6px #e0e4ea;
+            font-weight: 500;
         }
-        .action-btn:hover:not(:disabled) { background: #66b1ff; }
-        .action-btn:disabled { background: #c0c4cc; cursor: not-allowed; }
+        .action-btn:hover:not(:disabled) {
+            background: #409eff;
+            color: #fff;
+            border-color: #409eff;
+        }
+        .action-btn:disabled {
+            background: #f5f7fa;
+            color: #c0c4cc;
+            border-color: #ebeef5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
         .qty { color: #666; font-variant-numeric: tabular-nums; }
         .qty-highlight { color: #409eff; font-weight: bold; }
         .input-cell input {
@@ -88,9 +112,30 @@
         /* 分页控件 */
         .el-pagination { margin: 18px 0 0; text-align: right; user-select: none; }
         .el-pagination button {
-            background: #fff; border: 1px solid #dcdfe6; color: #606266; border-radius: 4px; margin: 0 2px; padding: 5px 13px; font-size: 15px; cursor: pointer; transition: all 0.2s;
+            background: #fff;
+            border: 1.5px solid #409eff;
+            color: #409eff;
+            border-radius: 5px;
+            margin: 0 2px;
+            padding: 4px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1.5px 6px #e0e4ea;
+            font-weight: 500;
         }
-        .el-pagination button[disabled] { color: #c0c4cc; border-color: #ebeef5; background: #f5f7fa; cursor: not-allowed; }
+        .el-pagination button:hover:not([disabled]) {
+            background: #409eff;
+            color: #fff;
+            border-color: #409eff;
+        }
+        .el-pagination button[disabled] {
+            color: #c0c4cc;
+            border-color: #ebeef5;
+            background: #f5f7fa;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
         .el-pagination .active {
             background: #409eff; color: #fff; border-color: #409eff;
         }
@@ -146,23 +191,28 @@
             margin-top: 28px;
         }
         .modal-btn {
-            border-radius: 6px;
-            font-size: 15px;
-            min-width: 80px;
-            padding: 7px 0;
+            border-radius: 5px;
+            font-size: 13px;
+            min-width: 64px;
+            padding: 4px 0;
+            background: #fff;
+            color: #409eff;
+            border: 1.5px solid #409eff;
+            box-shadow: 0 1.5px 6px #e0e4ea;
+            font-weight: 500;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
         }
-        .modal-btn-primary {
+        .modal-btn:hover:not(:disabled) {
             background: #409eff;
             color: #fff;
-            border: none;
+            border-color: #409eff;
         }
-        .modal-btn-primary:hover {
-            background: #66b1ff;
-        }
-        .modal-btn-default {
+        .modal-btn:disabled {
             background: #f5f7fa;
-            color: #333;
-            border: none;
+            color: #c0c4cc;
+            border-color: #ebeef5;
+            cursor: not-allowed;
+            box-shadow: none;
         }
         @keyframes modal-fade-in {
             0% { opacity: 0; transform: scale(0.95); }
@@ -187,7 +237,6 @@
         <input type="text" placeholder="订单号/客户/供应商/产品" />
         <select>
             <option>全部状态</option>
-            <option>待接单</option>
             <option>生产中</option>
             <option>已完成</option>
         </select>
@@ -201,6 +250,7 @@
                 <th>客户</th>
                 <th>供应商</th>
                 <th>产品</th>
+                <th>箱规</th>
                 <th>订单数量</th>
                 <th>生产中数量</th>
                 <th>待质检数量</th>
@@ -208,7 +258,6 @@
                 <th>已发货数量</th>
                 <th>交期</th>
                 <th>状态</th>
-                <th class="sticky-col">操作</th>
             </tr>
             </thead>
             <tbody id="order-tbody">
@@ -216,27 +265,15 @@
         </table>
     </div>
 </div>
-<div id="orderModal" class="modal" style="display:none;">
-  <div class="modal-mask" onclick="closeOrderModal()"></div>
-  <div class="modal-content">
-    <div class="modal-title">确认接单</div>
-    <div>是否确认接受该订单？</div>
-    <div class="modal-buttons">
-      <button class="modal-btn modal-btn-default" onclick="closeOrderModal()">取消</button>
-      <button class="modal-btn modal-btn-primary" onclick="confirmOrderModal()">确认</button>
-    </div>
-  </div>
-</div>
 <script>
     // 扩充20条订单数据
     const data = Array.from({length: 20}, (_, i) => {
         const base = [
-            // status: 0=待接单, 1=生产中, 2=已完成
-            {customer: '亚马逊', supplier: '江苏智造', product: '电机A', status: 0},
-            {customer: 'eBay', supplier: '浙江科技', product: '外壳B', status: 1},
-            {customer: '沃尔玛', supplier: '深圳创新', product: '主板C', status: 2}
+            // status: 1=生产中, 2=已完成
+            {customer: 'eBay', supplier: '浙江科技', product: '外壳B', status: 1, boxSize: '400*300*250', boxQty: 20},
+            {customer: '沃尔玛', supplier: '深圳创新', product: '主板C', status: 2, boxSize: '500*350*200', boxQty: 15}
         ];
-        const b = base[i % 3];
+        const b = base[i % 2];
         const orderQty = 1000 - i*10;
         let producingQty = 0, qcQty = 0, stockQty = 0, shippedQty = 0;
         if (b.status === 1) {
@@ -257,6 +294,8 @@
             customer: b.customer,
             supplier: b.supplier,
             product: b.product,
+            boxSize: b.boxSize,
+            boxQty: b.boxQty,
             orderQty,
             producingQty,
             qcQty,
@@ -266,16 +305,13 @@
             status: b.status
         };
     });
-    const statusMap = ['待接单', '生产中', '已完成'];
+    const statusMap = ['生产中', '已完成'];
     // 分页参数
     let currentPage = 1;
     const pageSize = 10;
     
     function validateStatus(row) {
-        if (row.status === 0) {
-            // 待接单状态：除了订单数量，所有数量都是0
-            return row.producingQty === 0 && row.qcQty === 0 && row.stockQty === 0 && row.shippedQty === 0;
-        } else if (row.status === 1) {
+        if (row.status === 1) {
             // 生产中状态：存在生产中数量，可存在已发货数量
             return row.producingQty > 0;
         } else if (row.status === 2) {
@@ -295,41 +331,22 @@
             if (!validateStatus(row)) {
                 console.warn(`订单 ${row.id} 的状态与数量不匹配`);
             }
-            
             tbody.innerHTML += `<tr>
                 <td>${row.id}</td>
                 <td>${row.customer}</td>
                 <td>${row.supplier}</td>
                 <td>${row.product}</td>
+                <td><div>装箱尺寸：${row.boxSize}mm</div><div>装箱数量：${row.boxQty}</div></td>
                 <td class="qty">${row.orderQty}</td>
                 <td class="qty ${row.producingQty > 0 ? 'qty-highlight' : ''}">${row.producingQty}</td>
                 <td class="qty ${row.qcQty > 0 ? 'qty-highlight' : ''}">${row.qcQty}</td>
                 <td class="qty ${row.stockQty > 0 ? 'qty-highlight' : ''}">${row.stockQty}</td>
                 <td class="qty ${row.shippedQty > 0 ? 'qty-highlight' : ''}">${row.shippedQty}</td>
                 <td>${row.date}</td>
-                <td><span class="status-tag status-${row.status}">${statusMap[row.status]}</span></td>
-                <td class="sticky-col">
-                    ${row.status === 0 ? `<button class='action-btn' onclick='showOrderModal(${start+idx})'>确认接单</button>` : ''}
-                </td>
+                <td><span class="status-tag status-${row.status}">${statusMap[row.status-1]}</span></td>
             </tr>`;
         });
         renderPagination();
-    }
-    
-    let orderModalIdx = -1;
-    function showOrderModal(idx) {
-        orderModalIdx = idx;
-        document.getElementById('orderModal').style.display = 'block';
-    }
-    function closeOrderModal() {
-        document.getElementById('orderModal').style.display = 'none';
-        orderModalIdx = -1;
-    }
-    function confirmOrderModal() {
-        if(orderModalIdx === -1) return;
-        data[orderModalIdx].status = 1;
-        closeOrderModal();
-        render();
     }
     
     function renderPagination() {
