@@ -301,15 +301,15 @@
         let html = '';
         const total = data.length;
         const pageCount = Math.ceil(total / pageSize);
-        html += `<div style='margin:16px 0;text-align:right;'>`;
+        html += `<div class='el-pagination'>`;
         html += `<button onclick='gotoPage(1)' ${currentPage===1?'disabled':''}>首页</button>`;
         html += `<button onclick='gotoPage(${currentPage-1})' ${currentPage===1?'disabled':''}>上一页</button>`;
         for(let i=1;i<=pageCount;i++){
-            html += `<button onclick='gotoPage(${i})' ${currentPage===i?'style=\"background:#409eff;color:#fff;\"':''}>${i}</button>`;
+            html += `<button onclick='gotoPage(${i})' class='${currentPage===i?'active':''}'>${i}</button>`;
         }
         html += `<button onclick='gotoPage(${currentPage+1})' ${currentPage===pageCount?'disabled':''}>下一页</button>`;
         html += `<button onclick='gotoPage(${pageCount})' ${currentPage===pageCount?'disabled':''}>末页</button>`;
-        html += ` 共${total}条`;
+        html += ` <span style='margin-left:8px;color:#909399;'>共${total}条</span>`;
         html += `</div>`;
         let container = document.getElementById('plan-pagination');
         if (!container) {

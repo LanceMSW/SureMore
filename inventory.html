@@ -597,15 +597,15 @@
         let html = '';
         const total = productData.length;
         const pageCount = Math.ceil(total / pageSize);
-        html += `<div style='margin:16px 0;text-align:right;'>`;
+        html += `<div class='el-pagination'>`;
         html += `<button onclick='gotoProductPage(1)' ${productPage===1?'disabled':''}>首页</button>`;
         html += `<button onclick='gotoProductPage(${productPage-1})' ${productPage===1?'disabled':''}>上一页</button>`;
         for(let i=1;i<=pageCount;i++){
-            html += `<button onclick='gotoProductPage(${i})' ${productPage===i?'style=\"background:#409eff;color:#fff;\"':''}>${i}</button>`;
+            html += `<button onclick='gotoProductPage(${i})' class='${productPage===i?'active':''}'>${i}</button>`;
         }
         html += `<button onclick='gotoProductPage(${productPage+1})' ${productPage===pageCount?'disabled':''}>下一页</button>`;
         html += `<button onclick='gotoProductPage(${pageCount})' ${productPage===pageCount?'disabled':''}>末页</button>`;
-        html += ` 共${total}条`;
+        html += ` <span style='margin-left:8px;color:#909399;'>共${total}条</span>`;
         html += `</div>`;
         let container = document.getElementById('product-pagination');
         if (!container) {
@@ -658,15 +658,15 @@
         let html = '';
         const total = batchData.length;
         const pageCount = Math.ceil(total / pageSize);
-        html += `<div style='margin:16px 0;text-align:right;'>`;
+        html += `<div class='el-pagination'>`;
         html += `<button onclick='gotoBatchPage(1)' ${batchPage===1?'disabled':''}>首页</button>`;
         html += `<button onclick='gotoBatchPage(${batchPage-1})' ${batchPage===1?'disabled':''}>上一页</button>`;
         for(let i=1;i<=pageCount;i++){
-            html += `<button onclick='gotoBatchPage(${i})' ${batchPage===i?'style=\"background:#409eff;color:#fff;\"':''}>${i}</button>`;
+            html += `<button onclick='gotoBatchPage(${i})' class='${batchPage===i?'active':''}'>${i}</button>`;
         }
         html += `<button onclick='gotoBatchPage(${batchPage+1})' ${batchPage===pageCount?'disabled':''}>下一页</button>`;
         html += `<button onclick='gotoBatchPage(${pageCount})' ${batchPage===pageCount?'disabled':''}>末页</button>`;
-        html += ` 共${total}条`;
+        html += ` <span style='margin-left:8px;color:#909399;'>共${total}条</span>`;
         html += `</div>`;
         let container = document.getElementById('batch-pagination');
         if (!container) {
@@ -720,15 +720,15 @@
         let html = '';
         const total = locationData.length;
         const pageCount = Math.ceil(total / pageSize);
-        html += `<div style='margin:16px 0;text-align:right;'>`;
+        html += `<div class='el-pagination'>`;
         html += `<button onclick='gotoLocationPage(1)' ${locationPage===1?'disabled':''}>首页</button>`;
         html += `<button onclick='gotoLocationPage(${locationPage-1})' ${locationPage===1?'disabled':''}>上一页</button>`;
         for(let i=1;i<=pageCount;i++){
-            html += `<button onclick='gotoLocationPage(${i})' ${locationPage===i?'style=\"background:#409eff;color:#fff;\"':''}>${i}</button>`;
+            html += `<button onclick='gotoLocationPage(${i})' class='${locationPage===i?'active':''}'>${i}</button>`;
         }
         html += `<button onclick='gotoLocationPage(${locationPage+1})' ${locationPage===pageCount?'disabled':''}>下一页</button>`;
         html += `<button onclick='gotoLocationPage(${pageCount})' ${locationPage===pageCount?'disabled':''}>末页</button>`;
-        html += ` 共${total}条`;
+        html += ` <span style='margin-left:8px;color:#909399;'>共${total}条</span>`;
         html += `</div>`;
         let container = document.getElementById('location-pagination');
         if (!container) {
